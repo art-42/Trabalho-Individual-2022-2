@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: database
+    image: mongo:latest
+    restart: always
+    ports:
+      - "6060:6060"
