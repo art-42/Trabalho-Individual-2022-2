@@ -7,6 +7,9 @@ services:
     restart: always
     ports:
       - "6060:6060"
+  enviroment:
+    MONGO_INITDB_ROOT_USERNAME: lappis
+    MONGO_INITDB_ROOT_PASSWORD: lappis
   
   app:
     container_name: app
@@ -17,6 +20,34 @@ services:
     depends_on:
       - db
 
+    volumes:
+      - ./src:/src
+
     build:
       context: .
       dockerfile: Dockerfile
+
+  metabase:
+    depends_on:
+      - postgres
+
+    image: metabase/metabase:latest
+    container_name: metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: lappis
+      MB_DB_PORT: 5432
+      MB_DB_USER: lappis
+      MB_DB_PASS: lappis
+      MB_DB_HOST: postgres
+
+    ports:
+      - 5432:5432
+  
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD: lappis
+      - POSTGRES_USER: lappis
+      - METABASE_PASSWORD: lappis
