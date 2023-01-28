@@ -1,16 +1,6 @@
 version: '3.8'
 
 services:
-  db:
-    container_name: database
-    image: mongo:latest
-    restart: always
-    ports:
-      - "6060:6060"
-  enviroment:
-    MONGO_INITDB_ROOT_USERNAME: lappis
-    MONGO_INITDB_ROOT_PASSWORD: lappis
-  
   app:
     container_name: app
     restart: on-failure
@@ -26,28 +16,40 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+          
+  db:
+    container_name: database
+    image: postgres
+    restart: always
+    ports:
+      - "6060:6060"
+    environment:
+      - POSTGRES_DB=database
+      - POSTGRES_USER=database
+      - POSTGRES_PASSWORD=db_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
   metabase:
-    depends_on:
-      - postgres
-
     image: metabase/metabase:latest
     container_name: metabase
     environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: lappis
-      MB_DB_PORT: 5432
-      MB_DB_USER: lappis
-      MB_DB_PASS: lappis
-      MB_DB_HOST: postgres
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=database
+      - MB_DB_USER=database
+      - MB_DB_PASS=db_password
+      - MB_DB_HOST=db
+      - MB_DB_FILE=/metabase-data/metabase.db
 
+      - MB_DB_PORT=5432
+
+    depends_on:
+        - db
+    volumes:
+        - metabase_data:/metabase-data
     ports:
       - 5432:5432
-  
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    environment:
-      - POSTGRES_PASSWORD: lappis
-      - POSTGRES_USER: lappis
-      - METABASE_PASSWORD: lappis
+
+volumes:
+  db_data:
+  metabase_data:
